@@ -89,7 +89,6 @@ def parallelize(
                 queue.put(elem)
                 elem = queue.get()
         else: # Pick any worker, that is finished
-            elem = queue.get()
             broken = None
             # Wait for a worker to finish
             while not broken:
@@ -99,6 +98,7 @@ def parallelize(
                         workers.remove((worker_id, worker,))
                         broken = worker
             del broken
+            elem = queue.get()
 
         # Match the result
         match elem:
