@@ -6,7 +6,7 @@ Usage:
     @parallelize(
         cache = C,                  # Cache the results of the function (with a memory of <C: int>)
         max_workers = W,            # Use <W: int> workers
-        break_on_except = (..., ),  # Break on exceptions contained in the tuple
+        break_on_except = (..., ),  # Break on exceptions of type <E> (tuple)
                                     # -> by default all break the stream
         timed = True | False,       # Return the time it took to run a worker in the output stream
         ordered = True | False,     # Return the results in the order they were called
@@ -79,25 +79,31 @@ def parallelize(
         """
 
         elem: Any
+        found: bool = False
+
         if ordered: # Pick the next worker
             worker = workers.pop(0)
             worker[1].join()
             elem = queue.get()
 
-            # Looks bad, but it´s at most O(max_workers)
-            while elem[0] != worker[0]:
-                queue.put(elem)
-                elem = queue.get()
+            while not found:
+                for _ in range(queue.qsize() + 1):
+                    if elem[0] == worker[0]:
+                        found = True
+                        break
+                    else:
+                        queue.put(elem)
+                        elem = queue.get()
+        
         else: # Pick any worker, that is finished
-            broken = None
             # Wait for a worker to finish
-            while not broken:
+            while not found:
                 for worker_id, worker in workers:
                     if not worker.is_alive():
                         worker.join()
                         workers.remove((worker_id, worker,))
-                        broken = worker
-            del broken
+                        found = True
+                        break
             elem = queue.get()
 
         # Match the result
@@ -164,7 +170,7 @@ def parallelize(
                     kwargs=global_kwargs
                 )
                 worker.start()
-                workers.append((id, worker,))
+                workers.append((worker_id, worker,))
 
                 # Increment the id
                 worker_id += 1
