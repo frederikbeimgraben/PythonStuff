@@ -6,7 +6,7 @@ Usage:
     @parallelize(
         cache = C,                  # Cache the results of the function (with a memory of <C: int>)
         max_workers = W,            # Use <W: int> workers
-        break_on_except = (..., ),  # Break on exceptions of type <E> (tuple)
+        break_on_except = (..., ),  # Break on exceptions contained in the tuple
                                     # -> by default all break the stream
         timed = True | False,       # Return the time it took to run a worker in the output stream
         ordered = True | False,     # Return the results in the order they were called
