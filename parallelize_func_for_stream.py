@@ -108,7 +108,7 @@ def parallelize(
                 isinstance(result, exception)
                 for exception in break_on_except):
                 # If the result is an exception, raise it
-                for worker in workers:
+                for _, worker in workers:
                     worker.terminate()
                 raise result
             case (_, took, result,):
