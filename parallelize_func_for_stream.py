@@ -3,7 +3,7 @@ Decorator to automatically parallelize a function.
 It can be fed with a continuous stream of data and will also yield one.
 
 Usage:
-    @parallelize(
+    @mappable(
         cache = C,                  # Cache the results of the function (with a memory of <C: int>)
         max_workers = W,            # Use <W: int> workers
         break_on_except = (..., ),  # Break on exceptions of type <E> (tuple)
@@ -56,8 +56,7 @@ def _run(
         queue.put((worker_id, end - start, exc,))
 
 
-def parallelize(
-        cache: int=0,
+def mappable(
         max_workers: int=None,
         break_on_except: Iterable[Exception]=(Exception,),
         timed: bool=False,
@@ -134,21 +133,22 @@ def parallelize(
 
         # This is the `replacement` function that will be returned
         def _new(
-            input_stream: Iterable[param_annotation],
+            input: Iterable[param_annotation] | param_annotation,
             *global_args,
-            **global_kwargs) -> Iterable[return_annotation]:
+            **global_kwargs) -> Iterable[return_annotation] | return_annotation:
+            # If the input is not an iterable, just run the function
+            if (
+                not isinstance(input, Iterable)):
+                return function(input, *global_args, **global_kwargs)
 
             # If the input stream is not a generator of tuples, make it one
             input_stream = (
                 (arg,) if not isinstance(arg, tuple) else arg
-                for arg in input_stream
+                for arg in input
             )
 
             # Pickle the function
-            _function = dill.dumps(
-                functools.lru_cache(maxsize=cache)(function)
-                if cache > 0 else function
-            )
+            _function = dill.dumps(function)
 
             # Create a list of workers
             workers: List[Tuple[int, multiprocessing.Process]] = []
