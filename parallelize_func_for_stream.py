@@ -4,7 +4,6 @@ It can be fed with a continuous stream of data and will also yield one.
 
 Usage:
     @mappable(
-        cache = C,                  # Cache the results of the function (with a memory of <C: int>)
         max_workers = W,            # Use <W: int> workers
         break_on_except = (..., ),  # Break on exceptions of type <E> (tuple)
                                     # -> by default all break the stream
