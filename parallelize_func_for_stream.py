@@ -3,7 +3,7 @@ Decorator to automatically parallelize a function.
 It can be fed with a continuous stream of data and will also yield one.
 
 Usage:
-    @mappable(
+    @async_map(
         max_workers = W,            # Use <W: int> workers
         break_on_except = (..., ),  # Break on exceptions of types ... (tuple)
                                     # -> by default all break the stream
